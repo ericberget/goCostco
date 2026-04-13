@@ -368,7 +368,6 @@ function App(){
                         onDrop:e=>handleDrop(e,item.name),onDragOver:e=>handleDragOver(e,item.name),onDragLeave:handleDragLeave,
                         onClick:e=>{e.stopPropagation();fileRefs.current[item.id]?.click();},
                         onError:()=>setBrokenImgs(p=>({...p,[item.name.toLowerCase()]:true}))}),
-                      h("button",{className:"rm-img np",onClick:e=>{e.stopPropagation();rmImg(item.name);}},"\u2715"),
                       h("input",{type:"file",accept:"image/*",ref:el=>fileRefs.current[item.id]=el,style:{display:"none"},onChange:e=>{if(e.target.files[0])handleImageFile(item.name,e.target.files[0]);}})
                     )
                   : h(F,null,
@@ -400,9 +399,6 @@ function App(){
                       )
                 ),
 
-                // Delete from pantry (only in pantry view)
-                isPantryView&&h("button",{className:"np",style:{opacity:.3,background:"none",border:"none",color:"#C44",cursor:"pointer",fontSize:14,padding:"2px 6px"},
-                  onClick:e=>{e.stopPropagation();if(confirm("Remove \""+item.name+"\" from pantry permanently?"))rmFromPantry(item.id);}},"\u2715")
               )
             );
           }),
@@ -421,8 +417,6 @@ function App(){
                   h("div",{style:{flex:1,minWidth:0}},
                     h("span",{style:{fontSize:13,color:"#999"}},item.name)
                   ),
-                  h("button",{className:"np",style:{opacity:.3,background:"none",border:"none",color:"#C44",cursor:"pointer",fontSize:14,padding:"2px 6px"},
-                    onClick:e=>{e.stopPropagation();if(confirm("Remove \""+item.name+"\" from pantry permanently?"))rmFromPantry(item.id);}},"\u2715")
                 )
               );
             })
