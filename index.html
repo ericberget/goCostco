@@ -253,6 +253,15 @@ function App(){
     sb.from('pantry').upsert(next.filter(i=>i.cat===cat).map(i=>({id:i.id,name:i.name,cat:i.cat,note:i.note||'',on:i.on})));
     return next;
   });
+  const clearList=()=>{
+    if(!confirm("Clear the shopping list? All items move back to All Items."))return;
+    setPantry(p=>{
+      const next=p.map(i=>({...i,on:false}));
+      sb.from('pantry').upsert(next.map(i=>({id:i.id,name:i.name,cat:i.cat,note:i.note||'',on:false})));
+      return next;
+    });
+    setCheckedOff(new Set());
+  };
 
   const addNew=()=>{
     if(!nn.trim())return;
@@ -319,6 +328,7 @@ function App(){
       h("div",{className:"np",style:{display:"flex",gap:6,justifyContent:"center"}},
         h("button",{className:"b bs",onClick:()=>window.print()},"\u{1F5A8}\uFE0F Print"),
         isPantryView&&h("button",{className:"b bp",onClick:()=>setShowAddNew(!showAddNew)},showAddNew?"\u2715 Cancel":"+ Add Item"),
+        !isPantryView&&weekCount>0&&h("button",{className:"b bs",onClick:clearList},"Clear List"),
       )
     ),
 
