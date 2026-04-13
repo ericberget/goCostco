@@ -98,6 +98,11 @@
   .clear-meal { margin-left: auto; background: none; border: none; color: #C44; font-size: 18px; cursor: pointer; padding: 4px; opacity: .5; }
   .clear-meal:hover { opacity: 1; }
   .section-lbl { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; padding-left: 14px; }
+  .tag-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; padding: 0 4px; }
+  .tag-chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; border: 2px solid transparent; background: #F0F0EC; color: #777; }
+  .tag-chip:hover { transform: translateY(-1px); }
+  .tag-chip.active { color: white; border-color: transparent; }
+  .meal-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 1px 6px; border-radius: 4px; color: white; margin-top: 2px; display: inline-block; }
 </style>
 </head>
 <body>
@@ -171,26 +176,37 @@ const INIT = [
 ];
 
 const INIT_MEALS=[
-  {id:501,name:"Brats",emoji:"\u{1F32D}"},
-  {id:502,name:"Hamburgers",emoji:"\u{1F354}"},
-  {id:503,name:"Greek Pitas",emoji:"\u{1F959}"},
-  {id:504,name:"Street Tacos",emoji:"\u{1F32E}"},
-  {id:505,name:"Chicken Skewers",emoji:"\u{1F362}"},
-  {id:506,name:"Meatball Subs",emoji:"\u{1F956}"},
-  {id:507,name:"Spaghetti",emoji:"\u{1F35D}"},
-  {id:508,name:"Mac & Cheese",emoji:"\u{1F9C0}"},
-  {id:509,name:"Stir Fry",emoji:"\u{1F958}"},
-  {id:510,name:"Fish Tacos",emoji:"\u{1F41F}"},
-  {id:511,name:"Pizza Night",emoji:"\u{1F355}"},
-  {id:512,name:"Chicken Quesadillas",emoji:"\u{1FAD3}"},
-  {id:513,name:"Soup & Bread",emoji:"\u{1F372}"},
-  {id:514,name:"Pulled Pork",emoji:"\u{1F969}"},
-  {id:515,name:"Teriyaki Chicken",emoji:"\u{1F357}"},
-  {id:516,name:"BLTs",emoji:"\u{1F953}"},
-  {id:517,name:"Breakfast for Dinner",emoji:"\u{1F373}"},
-  {id:518,name:"Salad Bar Night",emoji:"\u{1F957}"},
-  {id:519,name:"Chili",emoji:"\u{1F336}\uFE0F"},
+  {id:501,name:"Brats",emoji:"\u{1F32D}",tag:"Grill"},
+  {id:502,name:"Hamburgers",emoji:"\u{1F354}",tag:"Grill"},
+  {id:503,name:"Greek Pitas",emoji:"\u{1F959}",tag:"Mexican"},
+  {id:504,name:"Street Tacos",emoji:"\u{1F32E}",tag:"Mexican"},
+  {id:505,name:"Chicken Skewers",emoji:"\u{1F362}",tag:"Chicken"},
+  {id:506,name:"Meatball Subs",emoji:"\u{1F956}",tag:"Sandwiches"},
+  {id:507,name:"Spaghetti",emoji:"\u{1F35D}",tag:"Pasta"},
+  {id:508,name:"Mac & Cheese",emoji:"\u{1F9C0}",tag:"Pasta"},
+  {id:509,name:"Stir Fry",emoji:"\u{1F958}",tag:"Asian"},
+  {id:510,name:"Fish Tacos",emoji:"\u{1F41F}",tag:"Mexican"},
+  {id:511,name:"Pizza Night",emoji:"\u{1F355}",tag:"Quick"},
+  {id:512,name:"Chicken Quesadillas",emoji:"\u{1FAD3}",tag:"Mexican"},
+  {id:513,name:"Soup & Bread",emoji:"\u{1F372}",tag:"Soups"},
+  {id:514,name:"Pulled Pork",emoji:"\u{1F969}",tag:"Sandwiches"},
+  {id:515,name:"Teriyaki Chicken",emoji:"\u{1F357}",tag:"Chicken"},
+  {id:516,name:"BLTs",emoji:"\u{1F953}",tag:"Sandwiches"},
+  {id:517,name:"Breakfast for Dinner",emoji:"\u{1F373}",tag:"Quick"},
+  {id:518,name:"Salad Bar Night",emoji:"\u{1F957}",tag:"Quick"},
+  {id:519,name:"Chili",emoji:"\u{1F336}\uFE0F",tag:"Soups"},
 ];
+
+const MEAL_TAGS={
+  "Grill":{emoji:"\u{1F525}",color:"#E85D3A"},
+  "Mexican":{emoji:"\u{1F32E}",color:"#D4763A"},
+  "Chicken":{emoji:"\u{1F357}",color:"#C08A30"},
+  "Pasta":{emoji:"\u{1F35D}",color:"#B07828"},
+  "Sandwiches":{emoji:"\u{1F956}",color:"#8B6A3E"},
+  "Asian":{emoji:"\u{1F958}",color:"#2A8A6A"},
+  "Soups":{emoji:"\u{1F372}",color:"#4A6FA5"},
+  "Quick":{emoji:"\u{26A1}",color:"#7B5EA7"},
+};
 
 function getNext14Days(){const days=[];const t=new Date();for(let i=0;i<14;i++){const d=new Date(t);d.setDate(t.getDate()+i);days.push({date:d.toISOString().split('T')[0],dayName:d.toLocaleDateString('en-US',{weekday:'short'}),dateLabel:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})});}return days;}
 
@@ -223,6 +239,8 @@ function App(){
   const [showAddMeal,setShowAddMeal]=useState(false);
   const [newMealName,setNewMealName]=useState("");
   const [newMealEmoji,setNewMealEmoji]=useState("\u{1F37D}\uFE0F");
+  const [newMealTag,setNewMealTag]=useState("Quick");
+  const [mealFilter,setMealFilter]=useState(null); // null = show all
 
   // Keep localStorage as fast cache
   useEffect(()=>{sv("costco-pantry",pantry);},[pantry]);
@@ -251,7 +269,7 @@ function App(){
       // Load meals
       const {data:md}=await sb.from('meals').select('*');
       if(md&&md.length>0){
-        setMeals(md.map(r=>({id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F'})));
+        setMeals(md.map(r=>({id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F',tag:r.tag||'Quick'})));
       }else{
         await sb.from('meals').upsert(INIT_MEALS);
         setMeals(INIT_MEALS);
@@ -291,7 +309,7 @@ function App(){
         if(p.eventType==='INSERT'||p.eventType==='UPDATE'){
           const r=p.new;
           setMeals(prev=>{
-            const meal={id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F'};
+            const meal={id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F',tag:r.tag||'Quick'};
             const idx=prev.findIndex(m=>m.id===r.id);
             if(idx>=0){const next=[...prev];next[idx]=meal;return next;}
             return[...prev,meal];
@@ -359,10 +377,10 @@ function App(){
   // Meal CRUD
   const addMeal=()=>{
     if(!newMealName.trim())return;
-    const meal={id:Date.now(),name:newMealName.trim(),emoji:newMealEmoji||'\u{1F37D}\uFE0F'};
+    const meal={id:Date.now(),name:newMealName.trim(),emoji:newMealEmoji||'\u{1F37D}\uFE0F',tag:newMealTag};
     setMeals(prev=>[...prev,meal]);
     sb.from('meals').upsert(meal);
-    setNewMealName("");setNewMealEmoji("\u{1F37D}\uFE0F");setShowAddMeal(false);
+    setNewMealName("");setNewMealEmoji("\u{1F37D}\uFE0F");setNewMealTag("Quick");setShowAddMeal(false);
   };
   const updateMealName=(id,name)=>{
     setMeals(prev=>prev.map(m=>m.id===id?{...m,name}:m));
@@ -600,10 +618,16 @@ function App(){
       // Add meal form
       showAddMeal&&h("div",{className:"np",style:{background:"white",borderRadius:10,border:"1px solid #EEE",padding:16,marginBottom:16,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}},
         h("div",{style:{fontWeight:700,fontSize:14,marginBottom:10}},"Add new meal"),
-        h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+        h("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}},
           h("input",{style:{flex:"1 1 60px",fontSize:24,textAlign:"center",maxWidth:60},placeholder:"\u{1F37D}\uFE0F",value:newMealEmoji,onChange:e=>setNewMealEmoji(e.target.value)}),
           h("input",{style:{flex:"3 1 140px"},placeholder:"Meal name...",value:newMealName,onChange:e=>setNewMealName(e.target.value),onKeyDown:e=>e.key==="Enter"&&addMeal()}),
           h("button",{className:"b bp",onClick:addMeal},"+ Add")
+        ),
+        h("div",{style:{display:"flex",gap:4,flexWrap:"wrap"}},
+          Object.entries(MEAL_TAGS).map(([tag,t])=>
+            h("span",{key:tag,style:{padding:"3px 10px",borderRadius:12,fontSize:11,fontWeight:600,cursor:"pointer",background:newMealTag===tag?t.color:"#F0F0EC",color:newMealTag===tag?"white":"#777"},
+              onClick:()=>setNewMealTag(tag)},t.emoji+" "+tag)
+          )
         )
       ),
 
@@ -613,11 +637,25 @@ function App(){
         h("span",{style:{marginLeft:8,cursor:"pointer",opacity:.6},onClick:()=>setSelectedMeal(null)},"\u2715")
       ),
 
-      // Meal Gallery
+      // Filter chips
       h("div",{className:"section-lbl"},"Your Meals"),
+      h("div",{className:"tag-filters"},
+        h("span",{className:"tag-chip"+(mealFilter===null?" active":""),style:mealFilter===null?{background:"#2C2C2C",color:"white"}:{},
+          onClick:()=>setMealFilter(null)},"All "+meals.length),
+        Object.entries(MEAL_TAGS).map(([tag,t])=>{
+          const count=meals.filter(m=>m.tag===tag).length;
+          if(count===0)return null;
+          return h("span",{key:tag,className:"tag-chip"+(mealFilter===tag?" active":""),
+            style:mealFilter===tag?{background:t.color}:{},
+            onClick:()=>setMealFilter(mealFilter===tag?null:tag)},t.emoji+" "+tag+" "+count);
+        })
+      ),
+
+      // Meal Gallery (filtered)
       h("div",{className:"meal-gallery"},
-        meals.map(meal=>
-          h("div",{key:meal.id,className:"meal-card"+(selectedMeal?.id===meal.id?" selected":""),
+        meals.filter(m=>!mealFilter||m.tag===mealFilter).map(meal=>{
+          const tagInfo=MEAL_TAGS[meal.tag]||{color:"#888"};
+          return h("div",{key:meal.id,className:"meal-card"+(selectedMeal?.id===meal.id?" selected":""),
             onClick:()=>setSelectedMeal(selectedMeal?.id===meal.id?null:meal)},
             h("div",{className:"meal-emoji"},meal.emoji),
             editingMealId===meal.id
@@ -627,9 +665,10 @@ function App(){
                 onBlur:()=>{updateMealName(meal.id,editMealVal);setEditingMealId(null);},
                 onClick:e=>e.stopPropagation()})
               :h("div",{className:"meal-name",onDoubleClick:e=>{e.stopPropagation();setEditingMealId(meal.id);setEditMealVal(meal.name);}},meal.name),
+            h("div",{className:"meal-tag",style:{background:tagInfo.color}},meal.tag),
             h("button",{className:"del-meal",onClick:e=>{e.stopPropagation();deleteMeal(meal.id);}},"\u00D7")
-          )
-        )
+          );
+        })
       ),
 
       // Two-Week Planner
