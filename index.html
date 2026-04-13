@@ -163,6 +163,8 @@ function App(){
   const [nc,setNc]=useState(CATS[0]);
   const [nNote,setNNote]=useState("");
   const fileRefs=useRef({});
+  const [editingNote,setEditingNote]=useState(null); // item id being edited
+  const [editNoteVal,setEditNoteVal]=useState("");
 
   // Keep localStorage as fast cache
   useEffect(()=>{sv("costco-pantry",pantry);},[pantry]);
@@ -375,10 +377,23 @@ function App(){
                       h("div",{className:"te-print"})
                     ),
 
-                // Text
-                h("div",{style:{flex:1,minWidth:0}},
-                  h("div",{style:{fontSize:15,color:"#333",fontWeight:500}},item.name),
-                  item.note&&h("div",{style:{fontSize:12,color:"#AAA",marginTop:2,fontStyle:"italic"}},item.note)
+                // Text + editable note
+                h("div",{style:{flex:1,minWidth:0},onClick:e=>e.stopPropagation()},
+                  h("div",{style:{fontSize:15,color:"#333",fontWeight:500,cursor:"pointer"},onClick:()=>togWeek(item.id)},item.name),
+                  editingNote===item.id
+                    ? h("div",{style:{marginTop:4,display:"flex",gap:4,alignItems:"center"}},
+                        h("input",{autoFocus:true,style:{flex:1,fontSize:13,padding:"4px 8px",borderRadius:6,border:"1.5px solid #D97B3A"},
+                          value:editNoteVal,onChange:e=>setEditNoteVal(e.target.value),
+                          onKeyDown:e=>{if(e.key==="Enter"){updateNote(item.id,editNoteVal);setEditingNote(null);}if(e.key==="Escape")setEditingNote(null);},
+                          onBlur:()=>{updateNote(item.id,editNoteVal);setEditingNote(null);}
+                        }),
+                      )
+                    : h("div",{style:{marginTop:3,display:"flex",alignItems:"center",gap:6,cursor:"pointer"},
+                        onClick:()=>{setEditingNote(item.id);setEditNoteVal(item.note||"");}},
+                        item.note
+                          ? h("span",{style:{fontSize:13,color:"#D97B3A",fontWeight:600,background:"#FFF5EB",padding:"2px 8px",borderRadius:4,display:"inline-block"}},item.note)
+                          : h("span",{style:{fontSize:12,color:"#CCC"}},"+  note")
+                      )
                 ),
 
                 // Delete from pantry (only in pantry view)
