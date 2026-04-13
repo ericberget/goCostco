@@ -165,6 +165,7 @@ function App(){
   const fileRefs=useRef({});
   const [editingNote,setEditingNote]=useState(null); // item id being edited
   const [editNoteVal,setEditNoteVal]=useState("");
+  const [checkedOff,setCheckedOff]=useState(new Set()); // items toggled off this session
 
   // Keep localStorage as fast cache
   useEffect(()=>{sv("costco-pantry",pantry);},[pantry]);
@@ -220,12 +221,18 @@ function App(){
     return()=>sb.removeChannel(ch);
   },[]);
 
-  const togWeek=(id)=>setPantry(p=>{
-    const next=p.map(i=>i.id===id?{...i,on:!i.on}:i);
-    const item=next.find(i=>i.id===id);
-    if(item)sb.from('pantry').upsert({id:item.id,name:item.name,cat:item.cat,note:item.note||'',on:item.on});
-    return next;
-  });
+  const togWeek=(id)=>{
+    // Track items checked off during shopping (for week view)
+    const cur=pantry.find(i=>i.id===id);
+    if(cur&&cur.on){setCheckedOff(s=>{const n=new Set(s);n.add(id);return n;});}
+    else{setCheckedOff(s=>{const n=new Set(s);n.delete(id);return n;});}
+    setPantry(p=>{
+      const next=p.map(i=>i.id===id?{...i,on:!i.on}:i);
+      const item=next.find(i=>i.id===id);
+      if(item)sb.from('pantry').upsert({id:item.id,name:item.name,cat:item.cat,note:item.note||'',on:item.on});
+      return next;
+    });
+  };
   const rmFromPantry=(id)=>{
     setPantry(p=>p.filter(i=>i.id!==id));
     sb.from('pantry').delete().eq('id',id);
@@ -333,8 +340,9 @@ function App(){
       const offItems=ci.filter(i=>!i.on);
       const s=CS[cat]||DS;
 
-      // In week view, skip categories with nothing selected
-      if(!isPantryView&&onItems.length===0)return null;
+      // In week view, skip categories with nothing active or checked off
+      const catCheckedOff=!isPantryView?ci.filter(i=>!i.on&&checkedOff.has(i.id)):[];
+      if(!isPantryView&&onItems.length===0&&catCheckedOff.length===0)return null;
 
       return h("div",{key:cat,style:{marginBottom:16}},
         h("div",{className:"cat-head",style:{background:s.bg,borderLeft:"4px solid "+s.a}},
@@ -402,6 +410,27 @@ function App(){
               )
             );
           }),
+
+          // Checked-off items in week view (grayed out, got it!)
+          !isPantryView&&catCheckedOff.length>0&&h(F,null,
+            onItems.length>0&&h("div",{style:{height:2,background:"#E8E8E4",margin:"4px 0"}}),
+            catCheckedOff.map((item,idx)=>{
+              const img=getImg(item.name);
+              const broken=brokenImgs[item.name.toLowerCase()];
+              return h("div",{key:item.id},
+                idx>0&&h("div",{className:"sep"}),
+                h("div",{className:"ir",style:{opacity:.35,textDecoration:"line-through",textDecorationColor:"#BBB"},onClick:()=>togWeek(item.id)},
+                  h("div",{className:"store-chk"}),
+                  h("div",{className:"pill np"},h("div",{className:"pill-dot"})),
+                  img&&!broken?h("img",{className:"th",src:img,alt:item.name,style:{filter:"grayscale(1)"},onError:()=>setBrokenImgs(p=>({...p,[item.name.toLowerCase()]:true}))}):null,
+                  h("div",{style:{flex:1,minWidth:0}},
+                    h("div",{style:{fontFamily:"'Oswald',sans-serif",fontSize:20,color:"#999",fontWeight:500}},item.name),
+                    item.note&&h("span",{style:{fontSize:13,color:"#CCC",fontWeight:600}},item.note)
+                  )
+                )
+              );
+            })
+          ),
 
           // OFF items (only in pantry view, compact)
           isPantryView&&offItems.length>0&&h(F,null,
