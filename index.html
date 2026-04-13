@@ -63,14 +63,16 @@
   .bs { background: #EEEDE8; color: #555; } .bs:hover { background: #E0DFD8; }
   .bd { background: #FEE; color: #C44; } .bd:hover { background: #FDD; }
 
-  /* Tabs */
-  .tabs { display: flex; gap: 0; margin-bottom: 18px; border-radius: 10px; overflow: hidden; border: 1.5px solid #DDD; }
-  .tab { flex: 1; padding: 10px; text-align: center; font-weight: 600; font-size: 13px; cursor: pointer; transition: all .15s; background: white; color: #888; }
-  .tab.active { background: #2C2C2C; color: white; }
-  .tab:not(:last-child) { border-right: 1.5px solid #DDD; }
+  /* Tabs — segmented control */
+  .tabs { display: inline-flex; gap: 4px; margin-bottom: 18px; border-radius: 12px; padding: 4px; background: #EEEEE8; }
+  .tab { padding: 8px 20px; text-align: center; font-weight: 600; font-size: 13px; cursor: pointer; transition: all .2s; background: transparent; color: #999; border-radius: 9px; white-space: nowrap; }
+  .tab.active { background: white; color: #2A2A2A; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .tab:hover:not(.active) { color: #666; }
 
   /* Counter badge */
   .badge { background: #D97B3A; color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+  .tab.active .badge { background: #D97B3A; }
+  .tab:not(.active) .badge { background: #C8C4BC; }
 </style>
 </head>
 <body>
@@ -286,25 +288,22 @@ function App(){
 
   return h("div",{id:"app"},
 
-    // Header
-    h("div",{style:{textAlign:"center",marginBottom:16}},
-      h("div",{style:{fontSize:11,color:"#AAA",letterSpacing:3,textTransform:"uppercase"}},"Costco Run"),
-      h("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:700,color:"#2A2A2A",margin:"2px 0"}},"Shopping List"),
-      h("div",{style:{fontSize:12,color:"#BBB"}},today)
-    ),
-
-    // Tabs
-    h("div",{className:"np tabs"},
-      h("div",{className:"tab"+(view==="week"?" active":""),onClick:()=>setView("week")},
-        "\u{1F6D2} This Week",weekCount>0&&h("span",{className:"badge"},weekCount)),
-      h("div",{className:"tab"+(view==="pantry"?" active":""),onClick:()=>setView("pantry")},
-        "\u{1F4E6} Full Pantry",h("span",{className:"badge",style:{background:"#888"}},pantry.length))
-    ),
-
-    // Actions
-    h("div",{className:"np",style:{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",marginBottom:16}},
-      h("button",{className:"b bs",onClick:()=>window.print()},"\u{1F5A8}\uFE0F Print this week\u2019s list"),
-      isPantryView&&h("button",{className:"b bs",onClick:()=>setShowAddNew(!showAddNew)},showAddNew?"\u2715 Cancel":"+ Add new item"),
+    // Header + Tabs
+    h("div",{style:{textAlign:"center",marginBottom:20}},
+      h("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#2A2A2A",margin:"0 0 4px"}},"Costco Run"),
+      h("div",{style:{fontSize:12,color:"#BBB",marginBottom:14}},today),
+      h("div",{className:"np",style:{display:"flex",justifyContent:"center",marginBottom:12}},
+        h("div",{className:"tabs"},
+          h("div",{className:"tab"+(view==="week"?" active":""),onClick:()=>setView("week")},
+            "Shopping List",weekCount>0&&h("span",{className:"badge"},weekCount)),
+          h("div",{className:"tab"+(view==="pantry"?" active":""),onClick:()=>setView("pantry")},
+            "All Items",h("span",{className:"badge"},pantry.length))
+        )
+      ),
+      h("div",{className:"np",style:{display:"flex",gap:6,justifyContent:"center"}},
+        h("button",{className:"b bs",onClick:()=>window.print()},"\u{1F5A8}\uFE0F Print"),
+        isPantryView&&h("button",{className:"b bp",onClick:()=>setShowAddNew(!showAddNew)},showAddNew?"\u2715 Cancel":"+ Add Item"),
+      )
     ),
 
     // Add new item panel
