@@ -73,6 +73,31 @@
   .badge { background: #D97B3A; color: white; border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700; margin-left: 6px; }
   .tab.active .badge { background: #D97B3A; }
   .tab:not(.active) .badge { background: #C8C4BC; }
+
+  /* Meal Planning */
+  .meal-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; margin-bottom: 24px; padding: 14px; background: white; border-radius: 10px; border: 1px solid #EEEEE8; }
+  .meal-card { aspect-ratio: 1; border: 2px solid #E8E8E4; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; transition: all .15s; background: #FAFAF7; position: relative; padding: 6px; }
+  .meal-card:hover { border-color: #D97B3A; background: #FFF5EB; transform: scale(1.05); }
+  .meal-card.selected { border-color: #D97B3A; background: #D97B3A; color: white; box-shadow: 0 2px 8px rgba(217,123,58,.3); }
+  .meal-emoji { font-size: 32px; line-height: 1; }
+  .meal-name { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.2; word-break: break-word; }
+  .meal-card .del-meal { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: #C44; color: white; border: none; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .meal-card:hover .del-meal { display: flex; }
+  .week-hdr { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; color: #2A2A2A; padding: 10px 14px; background: #F5F5F5; border-radius: 8px 8px 0 0; border-left: 4px solid #D97B3A; }
+  .day-slots { background: white; border-radius: 0 0 8px 8px; border: 1px solid #EEEEE8; border-top: none; overflow: hidden; }
+  .day-slot { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #F4F4F0; cursor: pointer; transition: all .15s; min-height: 56px; }
+  .day-slot:last-child { border-bottom: none; }
+  .day-slot:hover { background: #FAFAF7; }
+  .day-slot.drop-target { background: #FFF5EB; }
+  .day-lbl { font-weight: 600; font-size: 13px; color: #666; min-width: 72px; }
+  .day-date { font-size: 11px; color: #999; margin-top: 1px; }
+  .meal-slot { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; background: #FFF5EB; border: 2px solid #F0D9C0; }
+  .meal-slot-emoji { font-size: 22px; line-height: 1; }
+  .meal-slot-name { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 500; color: #2A2A2A; }
+  .meal-slot-empty { flex: 1; padding: 6px 12px; border-radius: 8px; background: #F8F8F8; border: 2px dashed #DDD; text-align: center; font-size: 12px; color: #BBB; }
+  .clear-meal { margin-left: auto; background: none; border: none; color: #C44; font-size: 18px; cursor: pointer; padding: 4px; opacity: .5; }
+  .clear-meal:hover { opacity: 1; }
+  .section-lbl { font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; padding-left: 14px; }
 </style>
 </head>
 <body>
@@ -145,6 +170,30 @@ const INIT = [
   {id:28,name:"Blueberries",cat:"Produce",note:"",on:true},
 ];
 
+const INIT_MEALS=[
+  {id:501,name:"Brats",emoji:"\u{1F32D}"},
+  {id:502,name:"Hamburgers",emoji:"\u{1F354}"},
+  {id:503,name:"Greek Pitas",emoji:"\u{1F959}"},
+  {id:504,name:"Street Tacos",emoji:"\u{1F32E}"},
+  {id:505,name:"Chicken Skewers",emoji:"\u{1F362}"},
+  {id:506,name:"Meatball Subs",emoji:"\u{1F956}"},
+  {id:507,name:"Spaghetti",emoji:"\u{1F35D}"},
+  {id:508,name:"Mac & Cheese",emoji:"\u{1F9C0}"},
+  {id:509,name:"Stir Fry",emoji:"\u{1F958}"},
+  {id:510,name:"Fish Tacos",emoji:"\u{1F41F}"},
+  {id:511,name:"Pizza Night",emoji:"\u{1F355}"},
+  {id:512,name:"Chicken Quesadillas",emoji:"\u{1FAD3}"},
+  {id:513,name:"Soup & Bread",emoji:"\u{1F372}"},
+  {id:514,name:"Pulled Pork",emoji:"\u{1F969}"},
+  {id:515,name:"Teriyaki Chicken",emoji:"\u{1F357}"},
+  {id:516,name:"BLTs",emoji:"\u{1F953}"},
+  {id:517,name:"Breakfast for Dinner",emoji:"\u{1F373}"},
+  {id:518,name:"Salad Bar Night",emoji:"\u{1F957}"},
+  {id:519,name:"Chili",emoji:"\u{1F336}\uFE0F"},
+];
+
+function getNext14Days(){const days=[];const t=new Date();for(let i=0;i<14;i++){const d=new Date(t);d.setDate(t.getDate()+i);days.push({date:d.toISOString().split('T')[0],dayName:d.toLocaleDateString('en-US',{weekday:'short'}),dateLabel:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})});}return days;}
+
 function matchImg(n){const l=n.toLowerCase();for(const[k,v]of Object.entries(DOC_IMAGES)){if(l.includes(k)||k.includes(l))return v;}for(const[k,v]of Object.entries(WEB_IMAGES)){if(l===k)return v;}return null;}
 
 function resizeImage(file){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>{const img=new Image();img.onload=()=>{const m=200;let w=img.width,ht=img.height;if(w>ht){if(w>m){ht=ht*m/w;w=m;}}else{if(ht>m){w=w*m/ht;ht=m;}}const c=document.createElement("canvas");c.width=w;c.height=ht;c.getContext("2d").drawImage(img,0,0,w,ht);r(c.toDataURL("image/jpeg",.7));};img.src=e.target.result;};rd.readAsDataURL(file);});}
@@ -166,6 +215,14 @@ function App(){
   const [editingNote,setEditingNote]=useState(null); // item id being edited
   const [editNoteVal,setEditNoteVal]=useState("");
   const [checkedOff,setCheckedOff]=useState(new Set()); // items toggled off this session
+  const [meals,setMeals]=useState([]);
+  const [mealPlan,setMealPlan]=useState([]);
+  const [selectedMeal,setSelectedMeal]=useState(null);
+  const [editingMealId,setEditingMealId]=useState(null);
+  const [editMealVal,setEditMealVal]=useState("");
+  const [showAddMeal,setShowAddMeal]=useState(false);
+  const [newMealName,setNewMealName]=useState("");
+  const [newMealEmoji,setNewMealEmoji]=useState("\u{1F37D}\uFE0F");
 
   // Keep localStorage as fast cache
   useEffect(()=>{sv("costco-pantry",pantry);},[pantry]);
@@ -191,6 +248,19 @@ function App(){
         const ir=Object.entries(local).map(([name,url])=>({name,url}));
         if(ir.length>0)await sb.from('images').upsert(ir);
       }
+      // Load meals
+      const {data:md}=await sb.from('meals').select('*');
+      if(md&&md.length>0){
+        setMeals(md.map(r=>({id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F'})));
+      }else{
+        await sb.from('meals').upsert(INIT_MEALS);
+        setMeals(INIT_MEALS);
+      }
+      // Load meal plan
+      const {data:mp}=await sb.from('meal_plan').select('*');
+      if(mp&&mp.length>0){
+        setMealPlan(mp.map(r=>({id:r.id,date:r.date,mealId:r.meal_id,mealName:r.meal_name})));
+      }
     })();
   },[]);
 
@@ -215,6 +285,32 @@ function App(){
           setImgDb(prev=>({...prev,[p.new.name]:p.new.url}));
         }else if(p.eventType==='DELETE'){
           setImgDb(prev=>{const n={...prev};delete n[p.old.name];return n;});
+        }
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'meals'},p=>{
+        if(p.eventType==='INSERT'||p.eventType==='UPDATE'){
+          const r=p.new;
+          setMeals(prev=>{
+            const meal={id:r.id,name:r.name,emoji:r.emoji||'\u{1F37D}\uFE0F'};
+            const idx=prev.findIndex(m=>m.id===r.id);
+            if(idx>=0){const next=[...prev];next[idx]=meal;return next;}
+            return[...prev,meal];
+          });
+        }else if(p.eventType==='DELETE'){
+          setMeals(prev=>prev.filter(m=>m.id!==p.old.id));
+        }
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'meal_plan'},p=>{
+        if(p.eventType==='INSERT'||p.eventType==='UPDATE'){
+          const r=p.new;
+          setMealPlan(prev=>{
+            const plan={id:r.id,date:r.date,mealId:r.meal_id,mealName:r.meal_name};
+            const idx=prev.findIndex(mp=>mp.date===r.date);
+            if(idx>=0){const next=[...prev];next[idx]=plan;return next;}
+            return[...prev,plan];
+          });
+        }else if(p.eventType==='DELETE'){
+          setMealPlan(prev=>prev.filter(mp=>mp.date!==p.old.date));
         }
       })
       .subscribe();
@@ -258,6 +354,40 @@ function App(){
     setPantry(p=>p.map(i=>({...i,on:false})));
     sb.from('pantry').update({on:false}).gt('id',0);
     setCheckedOff(new Set());
+  };
+
+  // Meal CRUD
+  const addMeal=()=>{
+    if(!newMealName.trim())return;
+    const meal={id:Date.now(),name:newMealName.trim(),emoji:newMealEmoji||'\u{1F37D}\uFE0F'};
+    setMeals(prev=>[...prev,meal]);
+    sb.from('meals').upsert(meal);
+    setNewMealName("");setNewMealEmoji("\u{1F37D}\uFE0F");setShowAddMeal(false);
+  };
+  const updateMealName=(id,name)=>{
+    setMeals(prev=>prev.map(m=>m.id===id?{...m,name}:m));
+    sb.from('meals').update({name}).eq('id',id);
+  };
+  const deleteMeal=(id)=>{
+    if(!confirm("Delete this meal?"))return;
+    setMeals(prev=>prev.filter(m=>m.id!==id));
+    setMealPlan(prev=>prev.filter(p=>p.mealId!==id));
+    sb.from('meals').delete().eq('id',id);
+    sb.from('meal_plan').delete().eq('meal_id',id);
+  };
+  // Meal plan
+  const assignMeal=(date,meal)=>{
+    const existing=mealPlan.find(p=>p.date===date);
+    setMealPlan(prev=>{
+      const filtered=prev.filter(p=>p.date!==date);
+      return[...filtered,{id:existing?.id||Date.now(),date,mealId:meal.id,mealName:meal.name}];
+    });
+    sb.from('meal_plan').upsert({id:existing?.id||Date.now(),date,meal_id:meal.id,meal_name:meal.name});
+    setSelectedMeal(null);
+  };
+  const clearMealDay=(date)=>{
+    setMealPlan(prev=>prev.filter(p=>p.date!==date));
+    sb.from('meal_plan').delete().eq('date',date);
   };
 
   const addNew=()=>{
@@ -319,13 +449,16 @@ function App(){
           h("div",{className:"tab"+(view==="week"?" active":""),onClick:()=>setView("week")},
             "Shopping List",weekCount>0&&h("span",{className:"badge"},weekCount)),
           h("div",{className:"tab"+(view==="pantry"?" active":""),onClick:()=>setView("pantry")},
-            "All Items",h("span",{className:"badge"},pantry.length))
+            "All Items",h("span",{className:"badge"},pantry.length)),
+          h("div",{className:"tab"+(view==="meals"?" active":""),onClick:()=>{setView("meals");setSelectedMeal(null);}},
+            "\u{1F37D}\uFE0F Meals")
         )
       ),
       h("div",{className:"np",style:{display:"flex",gap:6,justifyContent:"center"}},
-        h("button",{className:"b bs",onClick:()=>window.print()},"\u{1F5A8}\uFE0F Print"),
+        view!=="meals"&&h("button",{className:"b bs",onClick:()=>window.print()},"\u{1F5A8}\uFE0F Print"),
         isPantryView&&h("button",{className:"b bp",onClick:()=>setShowAddNew(!showAddNew)},showAddNew?"\u2715 Cancel":"+ Add Item"),
-        !isPantryView&&weekCount>0&&h("button",{className:"b bs",onClick:clearList},"Clear List"),
+        view==="week"&&weekCount>0&&h("button",{className:"b bs",onClick:clearList},"Clear List"),
+        view==="meals"&&h("button",{className:"b bp",onClick:()=>setShowAddMeal(!showAddMeal)},showAddMeal?"\u2715 Cancel":"+ Add Meal"),
       )
     ),
 
@@ -340,8 +473,8 @@ function App(){
       h("input",{style:{width:"100%"},placeholder:"Note (optional)...",value:nNote,onChange:e=>setNNote(e.target.value)})
     ),
 
-    // Category groups
-    sortC.map(cat=>{
+    // Category groups (hidden in meals view)
+    view!=="meals"&&sortC.map(cat=>{
       const ci=pantry.filter(i=>i.cat===cat);
       const onItems=ci.filter(i=>i.on);
       const offItems=ci.filter(i=>!i.on);
@@ -460,6 +593,81 @@ function App(){
         )
       );
     }),
+
+    // Meals View
+    view==="meals"&&h(F,null,
+
+      // Add meal form
+      showAddMeal&&h("div",{className:"np",style:{background:"white",borderRadius:10,border:"1px solid #EEE",padding:16,marginBottom:16,boxShadow:"0 1px 3px rgba(0,0,0,.04)"}},
+        h("div",{style:{fontWeight:700,fontSize:14,marginBottom:10}},"Add new meal"),
+        h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+          h("input",{style:{flex:"1 1 60px",fontSize:24,textAlign:"center",maxWidth:60},placeholder:"\u{1F37D}\uFE0F",value:newMealEmoji,onChange:e=>setNewMealEmoji(e.target.value)}),
+          h("input",{style:{flex:"3 1 140px"},placeholder:"Meal name...",value:newMealName,onChange:e=>setNewMealName(e.target.value),onKeyDown:e=>e.key==="Enter"&&addMeal()}),
+          h("button",{className:"b bp",onClick:addMeal},"+ Add")
+        )
+      ),
+
+      // Selected meal indicator
+      selectedMeal&&h("div",{className:"np",style:{textAlign:"center",padding:"8px 14px",marginBottom:12,background:"#FFF5EB",borderRadius:8,border:"2px solid #D97B3A",fontSize:13,fontWeight:600,color:"#D97B3A"}},
+        selectedMeal.emoji+" "+selectedMeal.name+" selected \u2014 tap a day below",
+        h("span",{style:{marginLeft:8,cursor:"pointer",opacity:.6},onClick:()=>setSelectedMeal(null)},"\u2715")
+      ),
+
+      // Meal Gallery
+      h("div",{className:"section-lbl"},"Your Meals"),
+      h("div",{className:"meal-gallery"},
+        meals.map(meal=>
+          h("div",{key:meal.id,className:"meal-card"+(selectedMeal?.id===meal.id?" selected":""),
+            onClick:()=>setSelectedMeal(selectedMeal?.id===meal.id?null:meal)},
+            h("div",{className:"meal-emoji"},meal.emoji),
+            editingMealId===meal.id
+              ?h("input",{autoFocus:true,style:{width:"100%",fontSize:11,fontWeight:600,padding:"2px 4px",textAlign:"center",border:"1px solid #D97B3A",borderRadius:4},
+                value:editMealVal,onChange:e=>setEditMealVal(e.target.value),
+                onKeyDown:e=>{if(e.key==="Enter"){updateMealName(meal.id,editMealVal);setEditingMealId(null);}if(e.key==="Escape")setEditingMealId(null);},
+                onBlur:()=>{updateMealName(meal.id,editMealVal);setEditingMealId(null);},
+                onClick:e=>e.stopPropagation()})
+              :h("div",{className:"meal-name",onDoubleClick:e=>{e.stopPropagation();setEditingMealId(meal.id);setEditMealVal(meal.name);}},meal.name),
+            h("button",{className:"del-meal",onClick:e=>{e.stopPropagation();deleteMeal(meal.id);}},"\u00D7")
+          )
+        )
+      ),
+
+      // Two-Week Planner
+      h("div",{className:"section-lbl",style:{marginTop:24}},"Two-Week Plan"),
+      [0,1].map(weekIdx=>{
+        const days14=getNext14Days();
+        const weekDays=days14.slice(weekIdx*7,(weekIdx+1)*7);
+        return h("div",{key:weekIdx,style:{marginBottom:16}},
+          h("div",{className:"week-hdr"},"Week "+(weekIdx+1)),
+          h("div",{className:"day-slots"},
+            weekDays.map(day=>{
+              const planned=mealPlan.find(p=>p.date===day.date);
+              const plannedMeal=planned?meals.find(m=>m.id===planned.mealId):null;
+              return h("div",{key:day.date,className:"day-slot"+(selectedMeal?" drop-target":""),
+                onClick:()=>{if(selectedMeal)assignMeal(day.date,selectedMeal);}},
+                h("div",null,
+                  h("div",{className:"day-lbl"},day.dayName),
+                  h("div",{className:"day-date"},day.dateLabel)
+                ),
+                plannedMeal
+                  ?h("div",{className:"meal-slot"},
+                    h("div",{className:"meal-slot-emoji"},plannedMeal.emoji),
+                    h("div",{className:"meal-slot-name"},plannedMeal.name),
+                    h("button",{className:"clear-meal",onClick:e=>{e.stopPropagation();clearMealDay(day.date);}},"\u00D7")
+                  )
+                  :planned&&planned.mealName
+                    ?h("div",{className:"meal-slot"},
+                      h("div",{className:"meal-slot-emoji"},"\u{1F37D}\uFE0F"),
+                      h("div",{className:"meal-slot-name"},planned.mealName),
+                      h("button",{className:"clear-meal",onClick:e=>{e.stopPropagation();clearMealDay(day.date);}},"\u00D7")
+                    )
+                    :h("div",{className:"meal-slot-empty"},selectedMeal?"Tap to assign":"\u2014")
+              );
+            })
+          )
+        );
+      })
+    ),
 
     // Footer
     h("div",{style:{textAlign:"center",marginTop:28,fontSize:10,color:"#D0D0CC",letterSpacing:1.5}},"BERGET FAMILY \u00B7 COSTCO RUN")
