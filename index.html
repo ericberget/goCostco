@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Costco List — Berget Family</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Oswald:wght@400;500;600&family=Playfair+Display:wght@700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', 'Segoe UI', sans-serif; background: #FAFAF7; min-height: 100vh; }
   #app { max-width: 700px; margin: 0 auto; padding: 20px 12px; }
@@ -379,7 +379,7 @@ function App(){
 
                 // Text + editable note
                 h("div",{style:{flex:1,minWidth:0},onClick:e=>e.stopPropagation()},
-                  h("div",{style:{fontSize:15,color:"#333",fontWeight:500,cursor:"pointer"},onClick:()=>togWeek(item.id)},item.name),
+                  h("div",{style:{fontFamily:"'Oswald',sans-serif",fontSize:20,color:"#2A2A2A",fontWeight:500,letterSpacing:.3,cursor:"pointer"},onClick:()=>togWeek(item.id)},item.name),
                   editingNote===item.id
                     ? h("div",{style:{marginTop:4,display:"flex",gap:4,alignItems:"center"}},
                         h("input",{autoFocus:true,style:{flex:1,fontSize:13,padding:"4px 8px",borderRadius:6,border:"1.5px solid #D97B3A"},
