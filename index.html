@@ -255,11 +255,8 @@ function App(){
   });
   const clearList=()=>{
     if(!confirm("Clear the shopping list? All items move back to All Items."))return;
-    setPantry(p=>{
-      const next=p.map(i=>({...i,on:false}));
-      sb.from('pantry').upsert(next.map(i=>({id:i.id,name:i.name,cat:i.cat,note:i.note||'',on:false})));
-      return next;
-    });
+    setPantry(p=>p.map(i=>({...i,on:false})));
+    sb.from('pantry').update({on:false}).gt('id',0);
     setCheckedOff(new Set());
   };
 
